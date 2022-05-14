@@ -7,28 +7,9 @@
 
 static std::mt19937 g(random::u32());
 
-void SpawnModel(Model* model, bool randomize = false) {
-  INFO("WhatTheRack will spawn a %s/%s module.", model->plugin->slug.c_str(), model->slug.c_str());
-  Module *module = model->createModule();
-  ModuleWidget *moduleWidget = model->createModuleWidget(module);
-  if (!moduleWidget) {
-    WARN("WhatTheRack was unable to spawn a %s/%s module.", model->plugin->slug.c_str(), model->slug.c_str());
-    return;
-  }
-  APP->engine->addModule(module);
-  APP->scene->rack->updateModuleOldPositions();
-  APP->scene->rack->addModuleAtMouse(moduleWidget);
-  history::ModuleAdd *h = new history::ModuleAdd;
-  h->name = "create module";
-  h->setModule(moduleWidget);
-  APP->history->push(h);
-  if (randomize) {
-    moduleWidget->randomizeAction();
-  }
-  INFO("WhatTheRack successfully spawned a %s/%s module.", model->plugin->slug.c_str(), model->slug.c_str());
-}
+static void SpawnModel(Model* model, bool randomize = false);
 
-void SpawnAFewModels(std::vector<Model*>& models, int n, bool randomize = false) {
+static void SpawnAFewModels(std::vector<Model*>& models, int n, bool randomize = false) {
   std::shuffle(models.begin(), models.end(), g);
   for (auto it = models.begin(); it != models.end() && n > 0; ++it, --n) {
     Model* m = *it;
@@ -213,3 +194,26 @@ struct WhatTheModWidget : ModuleWidget {
 
 Model *modelWhatTheRack = createModel<WhatTheRack, WhatTheRackWidget>("WhatTheRack");
 Model *modelWhatTheMod = createModel<WhatTheRack, WhatTheModWidget>("WhatTheMod");
+
+#undef ModuleWidget
+
+static void SpawnModel(Model* model, bool randomize) {
+  INFO("WhatTheRack will spawn a %s/%s module.", model->plugin->slug.c_str(), model->slug.c_str());
+  Module *module = model->createModule();
+  ModuleWidget *moduleWidget = model->createModuleWidget(module);
+  if (!moduleWidget) {
+    WARN("WhatTheRack was unable to spawn a %s/%s module.", model->plugin->slug.c_str(), model->slug.c_str());
+    return;
+  }
+  APP->engine->addModule(module);
+  APP->scene->rack->updateModuleOldPositions();
+  APP->scene->rack->addModuleAtMouse(moduleWidget);
+  history::ModuleAdd *h = new history::ModuleAdd;
+  h->name = "create module";
+  h->setModule(moduleWidget);
+  APP->history->push(h);
+  if (randomize) {
+    moduleWidget->randomizeAction();
+  }
+  INFO("WhatTheRack successfully spawned a %s/%s module.", model->plugin->slug.c_str(), model->slug.c_str());
+}
